@@ -32,7 +32,7 @@ def save_to_csv():
     print(f"Data saved to {csv_filename}")
 
 # Register the signal handler
-signal.signal(signal.SIGINT, signal_handler)
+# signal.signal(signal.SIGINT, signal_handler)
 
 def enable_fun(piper:C_PiperInterface):
     '''
@@ -74,30 +74,32 @@ if __name__ == "__main__":
     piper.ConnectPort()
     piper.EnableArm(7)
     enable_fun(piper=piper)
+    # piper.MotionCtrl_1(0x02,0,0)#恢复
+    # piper.MotionCtrl_2(0x01, 0x00, 30, 0x00)
     # piper.DisableArm(7)
     piper.GripperCtrl(0,1000,0x01, 0)
-    joint_factor = 57324.840764 #1000*180/3.14 is the factor for joint position, radians
+    endpose_factor = 1e6 #1000*1000 is the factor for joint position, radians
     gripper_factor = 1e6 #1000*1000 is the factor for gripper position, micrometers
     position = [0,0,0,0,0,0,0]
     count = 0
     while True:
         pose = piper.GetArmEndPoseMsgs()
         gripper_pose = piper.GetArmGripperMsgs()
-        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
-        # breakpoint()
+        # timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
+        # # breakpoint()
         
-        # Store the data
-        data_rows.append([
-            timestamp,
-            pose.end_pose.X_axis,
-            pose.end_pose.Y_axis,
-            pose.end_pose.Z_axis,
-            pose.end_pose.RX_axis,
-            pose.end_pose.RY_axis,
-            pose.end_pose.RZ_axis,
-            gripper_pose.gripper_state.grippers_angle,
-            gripper_pose.gripper_state.grippers_effort
-        ])
+        # # Store the data
+        # data_rows.append([
+        #     timestamp,
+        #     pose.end_pose.X_axis,
+        #     pose.end_pose.Y_axis,
+        #     pose.end_pose.Z_axis,
+        #     pose.end_pose.RX_axis,
+        #     pose.end_pose.RY_axis,
+        #     pose.end_pose.RZ_axis,
+        #     gripper_pose.gripper_state.grippers_angle,
+        #     gripper_pose.gripper_state.grippers_effort
+        # ])
         
         # Optional: Print the data as before
         # print(pose)
@@ -107,38 +109,26 @@ if __name__ == "__main__":
         # print(count)
         if(count == 0):
             print("1-----------")
-            position = [0,0,0,0,0,0,0]
-            # position = [0.2,0.2,-0.2,0.3,-0.2,0.5,0.08]
+            position = [0.07,0,0.22,0,0.08,0,0]
         elif(count == 800):
             print("2-----------")
-            # position = [0.2,0.2,-0.2,0.3,-0.2,0.5,0.08]
-            position = [0,0,0,0,0,0,0]
-            # position = [-0.148,1.8265,-1.369,-0.0078,-0.0957,0.52059,0.08] # 0.08 is maximum gripper position
+            position = [0.2,0.0,0.4,0.0,0.08,0.0,0.08] # 0.08 is maximum gripper position
         elif(count == 1600):
             print("1-----------")
-            position = [0,0,0,0,0,0,0]
-            # position = [0.2,0.2,-0.2,0.3,-0.2,0.5,0.08]
+            position = [0.07,0,0.22,0,0.08,0,0]
             count = 0
         
-        joint_0 = round(position[0]*joint_factor)
-        joint_1 = round(position[1]*joint_factor)
-        joint_2 = round(position[2]*joint_factor)
-        joint_3 = round(position[3]*joint_factor)
-        joint_4 = round(position[4]*joint_factor)
-        joint_5 = round(position[5]*joint_factor)
-        joint_6 = round(position[6]*gripper_factor)
+        X = round(position[0]*endpose_factor)
+        Y = round(position[1]*endpose_factor)
+        Z = round(position[2]*endpose_factor)
+        RX = round(position[3]*endpose_factor)
+        RY = round(position[4]*endpose_factor)
+        RZ = round(position[5]*endpose_factor)
+        Gripper = round(position[6]*gripper_factor)
         # piper.MotionCtrl_1()
-        piper.MotionCtrl_2(0x01, 0x01, 30, 0x00)
-        piper.JointCtrl(joint_0, joint_1, joint_2, joint_3, joint_4, joint_5)
-        piper.GripperCtrl(abs(joint_6), 1000, 0x01, 0)
-        piper.MotionCtrl_2(0x01, 0x01, 30, 0x00)
+        piper.MotionCtrl_2(0x01, 0x00, 30, 0x00)
+        piper.EndPoseCtrl(X, Y, Z, RX, RY, RZ)
+        piper.GripperCtrl(abs(Gripper), 1000, 0x01, 0)
+        piper.MotionCtrl_2(0x01, 0x00, 30, 0x00)
         time.sleep(0.005)
         pass
-
-    # zero position
-#      X_axis : 54952, 54.952
-#  Y_axis : 0, 0.000
-#  Z_axis : 203386, 203.386
-#  RX_axis : 0, 0.000
-#  RY_axis : 85000, 85.000
-#  RZ_axis : 0, 0.000

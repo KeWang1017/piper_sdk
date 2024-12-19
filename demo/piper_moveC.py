@@ -59,7 +59,7 @@ if __name__ == "__main__":
     piper.EndPoseCtrl(222158,128758,142126,175152,-1259,-157235)
     piper.MoveCAxisUpdateCtrl(0x02)
     time.sleep(0.001)
-    piper.EndPoseCtrl(359079,3221,153470,179038,1105,179035)
+    piper.EndPoseCtrl(459079,3221,153470,179038,1105,179035)
     piper.MoveCAxisUpdateCtrl(0x03)
     time.sleep(0.001)
     piper.MotionCtrl_2(0x01, 0x03, 30, 0x00)
